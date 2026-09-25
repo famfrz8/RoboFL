@@ -130,8 +130,8 @@ bash launch/internvla_a1_3b_fl_robotwin_moe.sh
 # LoRA-MoE with full options (router, shared-A/expert-B, visual token pruning)
 bash launch/internvla_a1_3b_fl_lora_moe.sh
 
-# LoRA-MoE with router-weighted expert aggregation (FedForesight)
-bash launch/internvla_a1_3b_fl_lora_moe_routerweighted.sh
+# LoRA-MoE with FARD/PCEA affinity and router-weighted expert aggregation
+bash launch/fardpcea.sh
 
 # LoRA-MoE + TCR
 bash launch/internvla_a1_3b_fl_robotwin_moe_tcr.sh

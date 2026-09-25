@@ -2,12 +2,29 @@
 set -euo pipefail
 
 ###############################################################################
-################ LoRA-MoE Federated Learning Launch Script ###################
+############ LoRA-MoE Federated Learning + FARD/PCEA Launch Script ############
 #                                                                             #
-# Default: 1 GPU, 8 clients, FedForesight LoRA-MoE, explicit task-category partition           #
+# Default: 8 GPUs, 8 clients, FedForesight LoRA-MoE, task-category partition  #
+#                                                                             #
+# This is a self-contained launcher. It applies the FARD/PCEA-oriented        #
+# affinity settings on top of the base router-weighted LoRA-MoE defaults.     #
 ###############################################################################
 
 export HF_HOME="${HF_HOME:-$HOME/.cache/huggingface}"
+
+###############################################################################
+#################### FARD / PCEA affinity overrides ##########################
+# These values mirror the previous affordance_v3 wrapper and isolate this run
+# from the earlier FARD/PCEA and visual-pruning ablations. Override any of them
+# from the environment if a different configuration is needed.
+
+export ENABLE_AFFORDANCE_V3="${ENABLE_AFFORDANCE_V3:-true}"
+export AFFORDANCE_ROUTER_LEAD_IN_FRACTION="${AFFORDANCE_ROUTER_LEAD_IN_FRACTION:-0.0}"
+export MOE_ROUTER_WEIGHTED_AGGREGATION="${MOE_ROUTER_WEIGHTED_AGGREGATION:-true}"
+export ENABLE_FARD="${ENABLE_FARD:-false}"
+export ENABLE_PCEA="${ENABLE_PCEA:-false}"
+export USE_VISUAL_TOKEN_PRUNE="${USE_VISUAL_TOKEN_PRUNE:-false}"
+export LAMBDA_AFFORDANCE="${LAMBDA_AFFORDANCE:-0.001}"
 
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
@@ -288,28 +305,28 @@ accelerate launch "${ARGS[@]}"
 # 0. Set WandB credentials in the remote shell (do not hardcode in scripts)
 #    export WANDB_API_KEY="your-new-wandb-key"
 #
-# 1. Default: 8 GPUs, 8 clients, FARD + Affordance + uniform aggregation
-#    bash launch/internvla_a1_3b_fl_lora_moe_routerweighted.sh
+# 1. Default: 8 GPUs, 8 clients, FARD/PCEA affinity + router-weighted aggregation
+#    bash launch/fardpcea.sh
 #
 # 2. Single-round end-to-end Affordance smoke test (20 MoE steps ~ 1 lead-in step)
 #    FL_NUM_ROUNDS=1 FL_LOCAL_STEPS=1 MOE_STEPS=20 WANDB_MODE=offline \
-#      bash launch/internvla_a1_3b_fl_lora_moe_routerweighted.sh
+#      bash launch/fardpcea.sh
 #
 # 3. 8 GPU / 8 clients
 #    NUM_GPUS=8 FL_NUM_CLIENTS=8 \
-#      bash launch/internvla_a1_3b_fl_lora_moe_routerweighted.sh
+#      bash launch/fardpcea.sh
 #
 # 4. Custom FARD, Affordance and Aux loss weights
 #    LAMBDA_FARD=0.01 LAMBDA_AFFORDANCE=0.01 LAMBDA_AUX=0.001 \
-#      bash launch/internvla_a1_3b_fl_lora_moe_routerweighted.sh
+#      bash launch/fardpcea.sh
 #
 # 5. 20-round pilot
 #    FL_NUM_ROUNDS=20 FL_LOCAL_STEPS=100 MOE_STEPS=100 \
-#      bash launch/internvla_a1_3b_fl_lora_moe_routerweighted.sh
+#      bash launch/fardpcea.sh
 #
 # 6. Explicitly set remote RoboTwin repo IDs (space-separated)
 #    DATASET_REPO_ID="robotwin/aloha-task1 robotwin/aloha-task2" \
-#      bash launch/internvla_a1_3b_fl_lora_moe_routerweighted.sh
+#      bash launch/fardpcea.sh
 #
 # 7. FedForesight does not support shared-A or AB routing; invalid config fails fast at startup.
 #
