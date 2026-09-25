@@ -17,9 +17,9 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project.urls]
-homepage = "https://github.com/famfrz8/InternVLA-A1-LoRAMoE-RoboTwin"
-source = "https://github.com/famfrz8/InternVLA-A1-LoRAMoE-RoboTwin"
-issues = "https://github.com/famfrz8/InternVLA-A1-LoRAMoE-RoboTwin/issues"
+homepage = "https://github.com/famfrz8/RoboFL"
+source = "https://github.com/famfrz8/RoboFL"
+issues = "https://github.com/famfrz8/RoboFL/issues"
 
 [project]
 name = "internvla-a1"

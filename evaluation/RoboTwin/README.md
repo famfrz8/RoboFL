@@ -23,7 +23,7 @@ sudo apt install libvulkan1 mesa-vulkan-drivers vulkan-tools
 **RoboTwin 2.0 Repository:** [https://github.com/RoboTwin-Platform/RoboTwin](https://github.com/RoboTwin-Platform/RoboTwin)
 
 ```bash
-cd InternVLA-A1-LoRAMoE-RoboTwin
+cd RoboFL
 git clone https://github.com/RoboTwin-Platform/RoboTwin.git third_party/RoboTwin
 ```
 

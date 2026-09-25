@@ -7,8 +7,8 @@ The code is built and tested with **Python 3.10**, **CUDA 12.8**, and **PyTorch 
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/famfrz8/InternVLA-A1-LoRAMoE-RoboTwin.git
-cd InternVLA-A1-LoRAMoE-RoboTwin
+git clone https://github.com/famfrz8/RoboFL.git
+cd RoboFL
 ```
 
 ### 2. Create Conda Environment
