@@ -37,7 +37,8 @@ On top of the base model this release adds:
 | `evaluation/RoboTwin/` | RoboTwin 2.0 evaluation and inference. |
 | `tutorials/` | Installation and fine-tuning guides. |
 | `util_scripts/` | Dataset statistics and utility scripts. |
-| `third_party/RoboTwin/` | (Not vendored) RoboTwin 2.0 simulator, cloned separately. |
+| `third_party/RoboTwin/` | RoboTwin 2.0 simulator, added as a git submodule (upstream is not vendored). |
+| `third_party/RoboTwin_custom.patch` | Custom changes applied on top of the pinned RoboTwin revision. |
 
 ---
 
@@ -152,13 +153,24 @@ Key federated parameters: `FL_NUM_CLIENTS`, `FL_LOCAL_STEPS`, `FL_NUM_ROUNDS`,
 
 ## Evaluation
 
-Install the RoboTwin simulator separately and run the evaluation script:
+The RoboTwin 2.0 simulator is tracked as a git submodule pinned to a known revision, plus a
+small patch with the custom changes required by this pipeline. The simulator itself (and its
+~17 GB of assets) is **not** vendored here; it is fetched from its upstream repository
+(see its own MIT license).
 
 ```bash
-git clone https://github.com/RoboTwin-Platform/RoboTwin.git third_party/RoboTwin
-cp evaluation/RoboTwin/requirements.txt third_party/RoboTwin/script/requirements.txt
-cd third_party/RoboTwin && bash script/_install.sh && bash script/_download_assets.sh && cd ../../
+git submodule update --init third_party/RoboTwin
+cd third_party/RoboTwin
+git apply ../RoboTwin_custom.patch
+cp ../../evaluation/RoboTwin/requirements.txt script/requirements.txt
+bash script/_install.sh
+bash script/_download_assets.sh
+cd ../..
+```
 
+Then run the evaluation scripts:
+
+```bash
 bash evaluation/RoboTwin/eval.sh          # full/fine-tuned checkpoint
 bash evaluation/RoboTwin/eval_lora.sh     # LoRA checkpoint
 bash evaluation/RoboTwin/eval_lora_moe.sh # LoRA-MoE checkpoint

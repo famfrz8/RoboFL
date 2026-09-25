@@ -1,0 +1,394 @@
+diff --git a/envs/_base_task.py b/envs/_base_task.py
+index 982e6ec..bfd3cf7 100644
+--- a/envs/_base_task.py
++++ b/envs/_base_task.py
+@@ -197,6 +197,9 @@ class Base_Task(gym.Env):
+     def check_success(self):
+         pass
+ 
++    def get_failure_reasons(self):
++        return []
++
+     def setup_scene(self, **kwargs):
+         """
+         Set the scene
+diff --git a/envs/move_stapler_pad.py b/envs/move_stapler_pad.py
+index 0240163..4ac5ed5 100644
+--- a/envs/move_stapler_pad.py
++++ b/envs/move_stapler_pad.py
+@@ -8,6 +8,25 @@ from copy import deepcopy
+ 
+ class move_stapler_pad(Base_Task):
+ 
++    def _get_success_checks(self):
++        stapler_pose = self.stapler.get_pose().p
++        stapler_qpose = np.abs(self.stapler.get_pose().q)
++        target_pos = self.pad.get_pose().p
++        eps = np.array([0.02, 0.02, 0.01])
++        pos_delta = np.abs(stapler_pose - target_pos)
++        orientation_spread = stapler_qpose.max() - stapler_qpose.min()
++
++        return {
++            "position_ok": bool(np.all(pos_delta < eps)),
++            "position_delta": pos_delta.tolist(),
++            "position_eps": eps.tolist(),
++            "orientation_ok": bool(orientation_spread < 0.02),
++            "orientation_spread": float(orientation_spread),
++            "orientation_threshold": 0.02,
++            "left_gripper_open": bool(self.robot.is_left_gripper_open()),
++            "right_gripper_open": bool(self.robot.is_right_gripper_open()),
++        }
++
+     def setup_demo(self, **kwags):
+         super()._init_task_env_(**kwags)
+ 
+@@ -111,10 +130,32 @@ class move_stapler_pad(Base_Task):
+         return self.info
+ 
+     def check_success(self):
+-        stapler_pose = self.stapler.get_pose().p
+-        stapler_qpose = np.abs(self.stapler.get_pose().q)
+-        target_pos = self.pad.get_pose().p
+-        eps = [0.02, 0.02, 0.01]
+-        return (np.all(abs(stapler_pose - target_pos) < np.array(eps))
+-                and (stapler_qpose.max() - stapler_qpose.min()) < 0.02 and self.robot.is_left_gripper_open()
+-                and self.robot.is_right_gripper_open())
++        checks = self._get_success_checks()
++        return (
++            checks["position_ok"]
++            and checks["orientation_ok"]
++            and checks["left_gripper_open"]
++            and checks["right_gripper_open"]
++        )
++
++    def get_failure_reasons(self):
++        checks = self._get_success_checks()
++        reasons = []
++
++        if not checks["position_ok"]:
++            reasons.append(
++                "position mismatch: "
++                f"abs(stapler-pad)={checks['position_delta']}, tol={checks['position_eps']}"
++            )
++        if not checks["orientation_ok"]:
++            reasons.append(
++                "orientation mismatch: "
++                f"spread={checks['orientation_spread']:.4f}, "
++                f"threshold<{checks['orientation_threshold']:.4f}"
++            )
++        if not checks["left_gripper_open"]:
++            reasons.append("left gripper is not open")
++        if not checks["right_gripper_open"]:
++            reasons.append("right gripper is not open")
++
++        return reasons
+diff --git a/policy/GO1/scripts/convert_aloha_data_to_lerobot_robotwin.py b/policy/GO1/scripts/convert_aloha_data_to_lerobot_robotwin.py
+index 80a677a..61cddd9 100755
+--- a/policy/GO1/scripts/convert_aloha_data_to_lerobot_robotwin.py
++++ b/policy/GO1/scripts/convert_aloha_data_to_lerobot_robotwin.py
+@@ -40,6 +40,8 @@ def create_empty_dataset(
+     *,
+     has_velocity: bool = False,
+     has_effort: bool = False,
++    has_camera_geometry: bool = False,
++    has_depth: bool = False,
+     dataset_config: DatasetConfig = DEFAULT_DATASET_CONFIG,
+ ) -> LeRobotDataset:
+     motors = [
+@@ -110,6 +112,23 @@ def create_empty_dataset(
+                 "width",
+             ],
+         }
++        if has_camera_geometry:
++            features[f"observation.camera.{cam}.intrinsic_cv"] = {
++                "dtype": "float32",
++                "shape": (3, 3),
++                "names": ["row", "col"],
++            }
++            features[f"observation.camera.{cam}.extrinsic_cv"] = {
++                "dtype": "float32",
++                "shape": (4, 4),
++                "names": ["row", "col"],
++            }
++        if has_depth:
++            features[f"observation.camera.{cam}.depth"] = {
++                "dtype": "float32",
++                "shape": (480, 640),
++                "names": ["height", "width"],
++            }
+ 
+     if Path(HF_LEROBOT_HOME / repo_id).exists():
+         shutil.rmtree(HF_LEROBOT_HOME / repo_id)
+@@ -143,6 +162,16 @@ def has_effort(hdf5_files: list[Path]) -> bool:
+         return "/observations/effort" in ep
+ 
+ 
++def has_camera_geometry(hdf5_files: list[Path]) -> bool:
++    with h5py.File(hdf5_files[0], "r") as ep:
++        return "/observations/camera/cam_high/intrinsic_cv" in ep and "/observations/camera/cam_high/extrinsic_cv" in ep
++
++
++def has_depth(hdf5_files: list[Path]) -> bool:
++    with h5py.File(hdf5_files[0], "r") as ep:
++        return "/observations/camera/cam_high/depth" in ep
++
++
+ def load_raw_images_per_camera(ep: h5py.File, cameras: list[str]) -> dict[str, np.ndarray]:
+     imgs_per_cam = {}
+     for camera in cameras:
+@@ -166,15 +195,27 @@ def load_raw_images_per_camera(ep: h5py.File, cameras: list[str]) -> dict[str, n
+     return imgs_per_cam
+ 
+ 
++def load_camera_geometry_per_camera(ep: h5py.File, cameras: list[str]) -> dict[str, dict[str, torch.Tensor]]:
++    geometry_per_cam = {}
++    for camera in cameras:
++        geometry_per_cam[camera] = {}
++        for matrix_name in ("intrinsic_cv", "extrinsic_cv", "depth"):
++            matrix_path = f"/observations/camera/{camera}/{matrix_name}"
++            if matrix_path in ep:
++                geometry_per_cam[camera][matrix_name] = torch.from_numpy(ep[matrix_path][:]).float()
++    return geometry_per_cam
++
++
+ def load_raw_episode_data(
+     ep_path: Path,
+ ) -> tuple[
+     dict[str, np.ndarray],
++    dict[str, dict[str, torch.Tensor]],
+     torch.Tensor,
+     torch.Tensor,
+     torch.Tensor | None,
+     torch.Tensor | None,
+-]:
++    ]:
+     with h5py.File(ep_path, "r") as ep:
+         state = torch.from_numpy(ep["/observations/qpos"][:])
+         action = torch.from_numpy(ep["/action"][:])
+@@ -195,8 +236,16 @@ def load_raw_episode_data(
+                 "cam_right_wrist",
+             ],
+         )
++        geometry_per_cam = load_camera_geometry_per_camera(
++            ep,
++            [
++                "cam_high",
++                "cam_left_wrist",
++                "cam_right_wrist",
++            ],
++        )
+ 
+-    return imgs_per_cam, state, action, velocity, effort
++    return imgs_per_cam, geometry_per_cam, state, action, velocity, effort
+ 
+ 
+ def populate_dataset(
+@@ -211,7 +260,7 @@ def populate_dataset(
+     for ep_idx in tqdm.tqdm(episodes):
+         ep_path = hdf5_files[ep_idx]
+ 
+-        imgs_per_cam, state, action, velocity, effort = load_raw_episode_data(ep_path)
++        imgs_per_cam, geometry_per_cam, state, action, velocity, effort = load_raw_episode_data(ep_path)
+         num_frames = state.shape[0]
+         # add prompt
+         dir_path = os.path.dirname(ep_path)
+@@ -226,6 +275,13 @@ def populate_dataset(
+ 
+             for camera, img_array in imgs_per_cam.items():
+                 frame[f"observation.images.{camera}"] = img_array[i]
++                camera_geometry = geometry_per_cam.get(camera, {})
++                if "intrinsic_cv" in camera_geometry:
++                    frame[f"observation.camera.{camera}.intrinsic_cv"] = camera_geometry["intrinsic_cv"][i]
++                if "extrinsic_cv" in camera_geometry:
++                    frame[f"observation.camera.{camera}.extrinsic_cv"] = camera_geometry["extrinsic_cv"][i]
++                if "depth" in camera_geometry:
++                    frame[f"observation.camera.{camera}.depth"] = camera_geometry["depth"][i]
+ 
+             if velocity is not None:
+                 frame["observation.velocity"] = velocity[i]
+@@ -267,6 +323,8 @@ def port_aloha(
+         mode=mode,
+         has_effort=has_effort(hdf5_files),
+         has_velocity=has_velocity(hdf5_files),
++        has_camera_geometry=has_camera_geometry(hdf5_files),
++        has_depth=has_depth(hdf5_files),
+         dataset_config=dataset_config,
+     )
+     dataset = populate_dataset(
+diff --git a/policy/GO1/scripts/process_data.py b/policy/GO1/scripts/process_data.py
+index eee274d..d13f86d 100644
+--- a/policy/GO1/scripts/process_data.py
++++ b/policy/GO1/scripts/process_data.py
+@@ -22,10 +22,31 @@ def load_hdf5(dataset_path):
+             root["/joint_action/right_arm"][()],
+         )
+         image_dict = dict()
++        depth_dict = dict()
++        camera_geometry = dict()
+         for cam_name in root[f"/observation/"].keys():
+             image_dict[cam_name] = root[f"/observation/{cam_name}/rgb"][()]
++            depth_path = f"/observation/{cam_name}/depth"
++            if depth_path in root:
++                depth_dict[cam_name] = root[depth_path][()]
++            camera_geometry[cam_name] = {}
++            for matrix_name in ("intrinsic_cv", "extrinsic_cv"):
++                matrix_path = f"/observation/{cam_name}/{matrix_name}"
++                if matrix_path in root:
++                    camera_geometry[cam_name][matrix_name] = root[matrix_path][()]
+ 
+-    return left_gripper, left_arm, right_gripper, right_arm, image_dict
++    return left_gripper, left_arm, right_gripper, right_arm, image_dict, depth_dict, camera_geometry
++
++
++def resize_intrinsics(intrinsics, src_hw, dst_hw):
++    src_h, src_w = src_hw
++    dst_h, dst_w = dst_hw
++    resized = np.array(intrinsics, dtype=np.float32).copy()
++    resized[0, 0] *= dst_w / src_w
++    resized[1, 1] *= dst_h / src_h
++    resized[0, 2] *= dst_w / src_w
++    resized[1, 2] *= dst_h / src_h
++    return resized
+ 
+ 
+ def images_encoding(imgs):
+@@ -74,7 +95,7 @@ def data_transform(path, episode_num, save_path):
+         ) as f:
+             json.dump(save_instructions_json, f, indent=2)
+ 
+-        left_gripper_all, left_arm_all, right_gripper_all, right_arm_all, image_dict = load_hdf5(
++        left_gripper_all, left_arm_all, right_gripper_all, right_arm_all, image_dict, depth_dict, camera_geometry = load_hdf5(
+             os.path.join(path, "data", f"episode{i}.hdf5")
+         )
+         qpos = []
+@@ -82,6 +103,15 @@ def data_transform(path, episode_num, save_path):
+         cam_high = []
+         cam_right_wrist = []
+         cam_left_wrist = []
++        cam_high_depth = []
++        cam_right_wrist_depth = []
++        cam_left_wrist_depth = []
++        cam_high_intrinsic = []
++        cam_high_extrinsic = []
++        cam_right_wrist_intrinsic = []
++        cam_right_wrist_extrinsic = []
++        cam_left_wrist_intrinsic = []
++        cam_left_wrist_extrinsic = []
+         left_arm_dim = []
+         right_arm_dim = []
+ 
+@@ -104,18 +134,39 @@ def data_transform(path, episode_num, save_path):
+ 
+                 camera_high_bits = image_dict["head_camera"][j]
+                 camera_high = cv2.imdecode(np.frombuffer(camera_high_bits, np.uint8), cv2.IMREAD_COLOR)
++                src_hw = camera_high.shape[:2]
+                 camera_high_resized = cv2.resize(camera_high, (640, 480))
+                 cam_high.append(camera_high_resized)
++                if "head_camera" in depth_dict:
++                    cam_high_depth.append(cv2.resize(depth_dict["head_camera"][j].astype(np.float32), (640, 480)))
++                if "intrinsic_cv" in camera_geometry.get("head_camera", {}):
++                    cam_high_intrinsic.append(resize_intrinsics(camera_geometry["head_camera"]["intrinsic_cv"][j], src_hw, (480, 640)))
++                if "extrinsic_cv" in camera_geometry.get("head_camera", {}):
++                    cam_high_extrinsic.append(camera_geometry["head_camera"]["extrinsic_cv"][j])
+ 
+                 camera_right_wrist_bits = image_dict["right_camera"][j]
+                 camera_right_wrist = cv2.imdecode(np.frombuffer(camera_right_wrist_bits, np.uint8), cv2.IMREAD_COLOR)
++                src_hw = camera_right_wrist.shape[:2]
+                 camera_right_wrist_resized = cv2.resize(camera_right_wrist, (640, 480))
+                 cam_right_wrist.append(camera_right_wrist_resized)
++                if "right_camera" in depth_dict:
++                    cam_right_wrist_depth.append(cv2.resize(depth_dict["right_camera"][j].astype(np.float32), (640, 480)))
++                if "intrinsic_cv" in camera_geometry.get("right_camera", {}):
++                    cam_right_wrist_intrinsic.append(resize_intrinsics(camera_geometry["right_camera"]["intrinsic_cv"][j], src_hw, (480, 640)))
++                if "extrinsic_cv" in camera_geometry.get("right_camera", {}):
++                    cam_right_wrist_extrinsic.append(camera_geometry["right_camera"]["extrinsic_cv"][j])
+ 
+                 camera_left_wrist_bits = image_dict["left_camera"][j]
+                 camera_left_wrist = cv2.imdecode(np.frombuffer(camera_left_wrist_bits, np.uint8), cv2.IMREAD_COLOR)
++                src_hw = camera_left_wrist.shape[:2]
+                 camera_left_wrist_resized = cv2.resize(camera_left_wrist, (640, 480))
+                 cam_left_wrist.append(camera_left_wrist_resized)
++                if "left_camera" in depth_dict:
++                    cam_left_wrist_depth.append(cv2.resize(depth_dict["left_camera"][j].astype(np.float32), (640, 480)))
++                if "intrinsic_cv" in camera_geometry.get("left_camera", {}):
++                    cam_left_wrist_intrinsic.append(resize_intrinsics(camera_geometry["left_camera"]["intrinsic_cv"][j], src_hw, (480, 640)))
++                if "extrinsic_cv" in camera_geometry.get("left_camera", {}):
++                    cam_left_wrist_extrinsic.append(camera_geometry["left_camera"]["extrinsic_cv"][j])
+ 
+             if j != 0:
+                 action = state
+@@ -138,6 +189,19 @@ def data_transform(path, episode_num, save_path):
+             image.create_dataset("cam_high", data=cam_high_enc, dtype=f"S{len_high}")
+             image.create_dataset("cam_right_wrist", data=cam_right_wrist_enc, dtype=f"S{len_right}")
+             image.create_dataset("cam_left_wrist", data=cam_left_wrist_enc, dtype=f"S{len_left}")
++            camera = obs.create_group("camera")
++            for camera_name, depth, intrinsic, extrinsic in (
++                ("cam_high", cam_high_depth, cam_high_intrinsic, cam_high_extrinsic),
++                ("cam_right_wrist", cam_right_wrist_depth, cam_right_wrist_intrinsic, cam_right_wrist_extrinsic),
++                ("cam_left_wrist", cam_left_wrist_depth, cam_left_wrist_intrinsic, cam_left_wrist_extrinsic),
++            ):
++                camera_group = camera.create_group(camera_name)
++                if depth:
++                    camera_group.create_dataset("depth", data=np.array(depth, dtype=np.float32))
++                if intrinsic:
++                    camera_group.create_dataset("intrinsic_cv", data=np.array(intrinsic, dtype=np.float32))
++                if extrinsic:
++                    camera_group.create_dataset("extrinsic_cv", data=np.array(extrinsic, dtype=np.float32))
+ 
+         begin += 1
+         print(f"proccess {i} success!")
+diff --git a/script/eval_policy.py b/script/eval_policy.py
+index eded198..d6dfd5b 100644
+--- a/script/eval_policy.py
++++ b/script/eval_policy.py
+@@ -305,6 +305,16 @@ def eval_policy(task_name,
+             print("\033[92mSuccess!\033[0m")
+         else:
+             print("\033[91mFail!\033[0m")
++            if TASK_ENV.take_action_cnt >= TASK_ENV.step_lim:
++                print(
++                    "Failure context: "
++                    f"step limit reached ({TASK_ENV.take_action_cnt}/{TASK_ENV.step_lim})"
++                )
++            failure_reasons = TASK_ENV.get_failure_reasons()
++            if failure_reasons:
++                print("Failure reasons:")
++                for reason in failure_reasons:
++                    print(f"  - {reason}")
+ 
+         now_id += 1
+         TASK_ENV.close_env(clear_cache=((succ_seed + 1) % clear_cache_freq == 0))
+diff --git a/script/requirements.txt b/script/requirements.txt
+index f279ebc..165fd60 100644
+--- a/script/requirements.txt
++++ b/script/requirements.txt
+@@ -1,26 +1,11 @@
+-torch==2.4.1
+-torchvision
+-transforms3d==0.4.2
+ sapien==3.0.0b1
+-scipy==1.10.1
+ mplib==0.2.1
+-gymnasium==0.29.1
+ trimesh==4.4.3
+ open3d==0.18.0
+ imageio==2.34.2
+-pydantic
+-zarr
+-openai
+-huggingface_hub==0.25.0
+-h5py
+-# For Description Generation
+ azure==4.0.0
+ azure-ai-inference
+ pyglet<2
+-wandb
+ moviepy
+-imageio
+-termcolor
+-av
+-matplotlib
+-ffmpeg
++tyro
++h5py
+\ No newline at end of file

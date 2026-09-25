@@ -24,7 +24,10 @@ sudo apt install libvulkan1 mesa-vulkan-drivers vulkan-tools
 
 ```bash
 cd RoboFL
-git clone https://github.com/RoboTwin-Platform/RoboTwin.git third_party/RoboTwin
+git submodule update --init third_party/RoboTwin
+cd third_party/RoboTwin
+git apply ../RoboTwin_custom.patch
+cd ../..
 ```
 
 ### Step 3: Install Dependencies
