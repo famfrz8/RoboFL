@@ -306,27 +306,27 @@ accelerate launch "${ARGS[@]}"
 #    export WANDB_API_KEY="your-new-wandb-key"
 #
 # 1. Default: 8 GPUs, 8 clients, FARD/PCEA affinity + router-weighted aggregation
-#    bash launch/fardpcea.sh
+#    bash launch/internvla_a1_3b_fl_lora_moe_fardpcea.sh
 #
 # 2. Single-round end-to-end Affordance smoke test (20 MoE steps ~ 1 lead-in step)
 #    FL_NUM_ROUNDS=1 FL_LOCAL_STEPS=1 MOE_STEPS=20 WANDB_MODE=offline \
-#      bash launch/fardpcea.sh
+#      bash launch/internvla_a1_3b_fl_lora_moe_fardpcea.sh
 #
 # 3. 8 GPU / 8 clients
 #    NUM_GPUS=8 FL_NUM_CLIENTS=8 \
-#      bash launch/fardpcea.sh
+#      bash launch/internvla_a1_3b_fl_lora_moe_fardpcea.sh
 #
 # 4. Custom FARD, Affordance and Aux loss weights
 #    LAMBDA_FARD=0.01 LAMBDA_AFFORDANCE=0.01 LAMBDA_AUX=0.001 \
-#      bash launch/fardpcea.sh
+#      bash launch/internvla_a1_3b_fl_lora_moe_fardpcea.sh
 #
 # 5. 20-round pilot
 #    FL_NUM_ROUNDS=20 FL_LOCAL_STEPS=100 MOE_STEPS=100 \
-#      bash launch/fardpcea.sh
+#      bash launch/internvla_a1_3b_fl_lora_moe_fardpcea.sh
 #
 # 6. Explicitly set remote RoboTwin repo IDs (space-separated)
 #    DATASET_REPO_ID="robotwin/aloha-task1 robotwin/aloha-task2" \
-#      bash launch/fardpcea.sh
+#      bash launch/internvla_a1_3b_fl_lora_moe_fardpcea.sh
 #
 # 7. FedForesight does not support shared-A or AB routing; invalid config fails fast at startup.
 #

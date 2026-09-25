@@ -131,7 +131,7 @@ bash launch/internvla_a1_3b_fl_robotwin_moe.sh
 bash launch/internvla_a1_3b_fl_lora_moe.sh
 
 # LoRA-MoE with FARD/PCEA affinity and router-weighted expert aggregation
-bash launch/fardpcea.sh
+bash launch/internvla_a1_3b_fl_lora_moe_fardpcea.sh
 
 # LoRA-MoE + TCR
 bash launch/internvla_a1_3b_fl_robotwin_moe_tcr.sh
