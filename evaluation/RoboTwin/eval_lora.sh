@@ -51,7 +51,7 @@ cd ${PROJ_ROOT}
 # LoRA checkpoint path
 LORA_CKPT="${LORA_CKPT:-path/to/lora/checkpoint}"
 # Base model path (used to load LoRA)
-BASE_MODEL_PATH=${BASE_MODEL_PATH:-InternRobotics/InternVLA-A1-3B}
+BASE_MODEL_PATH=${BASE_MODEL_PATH:-path/to/InternVLA-A1-3B}
 
 COMPILE_INFERENCE=${COMPILE_INFERENCE:-false}
 USE_VISUAL_TOKEN_PRUNE=${USE_VISUAL_TOKEN_PRUNE:-false}

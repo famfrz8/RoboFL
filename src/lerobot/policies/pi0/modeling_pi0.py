@@ -536,7 +536,7 @@ class PI0Pytorch(nn.Module):  # see openpi `PI0Pytorch`
             # Also compile the main forward pass used during training
             self.forward = torch.compile(self.forward, mode=config.compile_mode)
 
-        msg = """An incorrect transformer version is used, please create an issue on https://github.com/huggingface/lerobot/issues"""
+        msg = """An incorrect transformer version is used, please create an issue on the upstream project issue tracker"""
 
         try:
             from transformers.models.siglip import check
@@ -970,7 +970,7 @@ class PI0Policy(PreTrainedPolicy):
         print(
             "The PI0 model is a direct port of the OpenPI implementation. \n"
             "This implementation follows the original OpenPI structure for compatibility. \n"
-            "Original implementation: https://github.com/Physical-Intelligence/openpi"
+            "Original implementation: the upstream project"
         )
         if pretrained_name_or_path is None:
             raise ValueError("pretrained_name_or_path is required")

@@ -94,7 +94,7 @@ export TCR_LOSS_WEIGHT="${TCR_LOSS_WEIGHT:-0.001}"
 ########################### Model & Dataset ###################################
 
 POLICY="qwena1"
-PRETRAINED_PATH="${PRETRAINED_PATH:-InternRobotics/InternVLA-A1-3B}"
+PRETRAINED_PATH="${PRETRAINED_PATH:-path/to/InternVLA-A1-3B}"
 
 DATASET_REPO_ID="${DATASET_REPO_ID:-}"
 if [[ -z "${DATASET_REPO_ID}" ]]; then

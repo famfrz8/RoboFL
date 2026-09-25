@@ -81,7 +81,7 @@ export FL_SEED="${FL_SEED:-42}"
 
 # ============ POLICY & MODEL ============
 POLICY="qwena1"
-PRETRAINED_PATH="InternRobotics/InternVLA-A1-3B"
+PRETRAINED_PATH="path/to/InternVLA-A1-3B"
 
 # ============ DATASET (RoboTwin) ============
 # Auto-detect datasets under data/robotwin/

@@ -119,7 +119,7 @@ export TCR_PROTOTYPE_MOMENTUM="${TCR_PROTOTYPE_MOMENTUM:-1.0}"
 ########################### MODEL & DATASET ###################################
 
 POLICY="qwena1"
-PRETRAINED_PATH="InternRobotics/InternVLA-A1-3B"
+PRETRAINED_PATH="path/to/InternVLA-A1-3B"
 
 # Auto-detect datasets under data/robotwin/
 DATASET_REPO_ID="$(

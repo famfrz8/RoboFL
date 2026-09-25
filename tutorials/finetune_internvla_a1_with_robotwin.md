@@ -15,10 +15,10 @@ ln -s ${HF_HOME}/lerobot data
 
 ## 1. Download the preprocessed RoboTwin Dataset
 
-First, download the preprocessed RoboTwin dataset in Lerobot v3.0 format from Hugging Face:
+First, download the preprocessed RoboTwin dataset in Lerobot v3.0 format from Hugging Face. Replace `<robotwin-dataset-repo>` with the dataset repository you intend to use:
 
 ```bash
-hf download hxma/RoboTwin-LeRobot-v3.0 \
+hf download <robotwin-dataset-repo> \
   --repo-type dataset \
   --local-dir data/robotwin
 ```

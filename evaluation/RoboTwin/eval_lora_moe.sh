@@ -51,7 +51,7 @@ cd ${PROJ_ROOT}
 
 # LoRA+MoE checkpoint path (must contain config.json and model.safetensors)
 LORAMOE_CKPT="${LORAMOE_CKPT:-path/to/loramoe/checkpoint}"
-BASE_MODEL_PATH=${BASE_MODEL_PATH:-InternRobotics/InternVLA-A1-3B}
+BASE_MODEL_PATH=${BASE_MODEL_PATH:-path/to/InternVLA-A1-3B}
 
 COMPILE_INFERENCE=${COMPILE_INFERENCE:-false}
 

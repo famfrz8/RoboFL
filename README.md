@@ -76,10 +76,11 @@ Re-run this step after any reinstall of `transformers`.
 
 ## Data
 
-Download the preprocessed RoboTwin dataset in LeRobot v3.0 format and link the cache:
+Download the preprocessed RoboTwin dataset in LeRobot v3.0 format and link the cache.
+Replace `<robotwin-dataset-repo>` with the dataset repository you intend to use:
 
 ```bash
-hf download hxma/RoboTwin-LeRobot-v3.0 \
+hf download <robotwin-dataset-repo> \
   --repo-type dataset \
   --local-dir data/robotwin
 
@@ -104,6 +105,19 @@ Set `HF_HOME`, `HF_TOKEN`, and (optionally) `WANDB_API_KEY` before launching. La
 scripts no longer hardcode credentials or absolute paths; `PRETRAINED_PATH`,
 `HF_HOME`, `CONDA_ROOT`, and output directories can all be overridden with environment
 variables.
+
+### Path placeholders
+
+Model and dataset locations are intentionally left generic. Before running training or
+evaluation, point the relevant variables at your own copies:
+
+- `PRETRAINED_PATH` — base checkpoint used by the training scripts
+  (a local directory or a HuggingFace repo id).
+- `PRETRAINED_CKPT`, `LORA_CKPT`, `LORAMOE_CKPT`, `BASE_MODEL_PATH` — checkpoints used by
+  the evaluation scripts.
+
+If any of these still contains a `path/to/...` placeholder, the script will fail; set the
+variable to a valid local path or repository id.
 
 See [`tutorials/finetune_internvla_a1_with_robotwin.md`](tutorials/finetune_internvla_a1_with_robotwin.md)
 for the complete RoboTwin fine-tuning walkthrough.
@@ -189,13 +203,9 @@ This project is a derivative work based on **InternVLA-A1** and is released unde
 license, and distribute your contributions under the same license. Commercial use is not
 permitted. See [`LICENSE`](LICENSE) for the full notice.
 
-This codebase also builds on open-source projects including
-[LeRobot](https://github.com/huggingface/lerobot),
-[openpi](https://github.com/Physical-Intelligence/openpi),
-[InternVL](https://github.com/OpenGVLab/InternVL),
-[Qwen3-VL](https://github.com/QwenLM/Qwen3-VL), and
-[NVIDIA Cosmos](https://github.com/nvidia-cosmos). Their respective licenses apply to
-those components.
+This codebase also builds on several third-party open-source projects. Their
+respective copyright notices and licenses are retained in the corresponding source
+files and continue to apply to those components.
 
 ```bibtex
 @article{internvla_a1_contributors_2026,

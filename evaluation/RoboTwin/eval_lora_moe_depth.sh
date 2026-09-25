@@ -53,7 +53,7 @@ cd ${PROJ_ROOT}
 
 # LoRA+MoE checkpoint path. Override if the directory name differs.
 LORAMOE_CKPT="${LORAMOE_CKPT:-path/to/loramoe/checkpoint}"
-BASE_MODEL_PATH=${BASE_MODEL_PATH:-InternRobotics/InternVLA-A1-3B}
+BASE_MODEL_PATH=${BASE_MODEL_PATH:-path/to/InternVLA-A1-3B}
 
 # Compile both paths. Visual token pruning uses hybrid compile by default.
 COMPILE_INFERENCE=${COMPILE_INFERENCE:-true}

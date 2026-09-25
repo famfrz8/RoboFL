@@ -53,7 +53,7 @@ cd ../../
 bash evaluation/RoboTwin/eval.sh
 ```
 
-By default, using the finetuned InternVLA-A1-3B from [Huggingface](https://huggingface.co/InternRobotics/InternVLA-A1-3B-RoboTwin):
+Set `PRETRAINED_CKPT` to a fine-tuned InternVLA-A1-3B checkpoint (local path or repository id):
 
 
 > You can modify the following variables in `evaluation/RoboTwin/eval.sh`:

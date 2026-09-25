@@ -151,7 +151,7 @@ export MOE_K_EXPERTS_B="${MOE_K_EXPERTS_B:-4}"  # top-k for Router B (legacy)
 ########################### MODEL & DATASET ###################################
 
 POLICY="qwena1"
-PRETRAINED_PATH="${PRETRAINED_PATH:-InternRobotics/InternVLA-A1-3B}"
+PRETRAINED_PATH="${PRETRAINED_PATH:-path/to/InternVLA-A1-3B}"
 
 if [[ -z "${DATASET_REPO_ID:-}" ]]; then
     DATASET_REPO_ID="$(

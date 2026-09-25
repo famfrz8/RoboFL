@@ -2413,7 +2413,7 @@ def validate_fedavg_server_config(cfg, fl_cfg, world_size):
     if fl_cfg["aggregation_strategy"] not in ("fedavg", "fedavg_uniform"):
         raise ValueError("lora_fedavg_server supports only equal-client FedAvg")
     if not cfg.policy.pretrained_path:
-        raise ValueError("lora_fedavg_server requires an InternRobotics pretrained base (or local copy)")
+        raise ValueError("lora_fedavg_server requires a pretrained base (or local copy)")
     for name in ("num_rounds", "local_steps", "local_epochs", "moe_steps", "moe_batch_size", "save_freq"):
         if fl_cfg[name] <= 0:
             raise ValueError(f"lora_fedavg_server requires positive {name}")

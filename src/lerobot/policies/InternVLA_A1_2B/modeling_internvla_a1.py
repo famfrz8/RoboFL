@@ -275,7 +275,7 @@ class InternVL3WithExpertModel(
 
         # self.internvl = InternVLForConditionalGeneration(config=vlm_config_hf)
         self.und_expert = InternVLForConditionalGeneration.from_pretrained(
-            os.path.join(HF_HOME, "hub", "OpenGVLab/InternVL3-1B-pt"), 
+            os.path.join(HF_HOME, "hub", "path/to/InternVL3-1B-pt"), 
             config=vlm_config_hf, 
             ignore_mismatched_sizes=True
         )

@@ -1076,7 +1076,7 @@ class InferenceArgs:
     task_config: str = "demo_clean"
     instruction_type: str = "unseen"
     seed: int = 0
-    ckpt_path: Union[str, Path] = "InternRobotics/InternVLA-A1-3B-RoboTwin"
+    ckpt_path: Union[str, Path] = "path/to/InternVLA-A1-3B-RoboTwin"
     base_model_path: Union[str, Path, None] = None  # Required for LoRA checkpoint inference
     stats_key: str = "aloha"
     resize_size: int = 224

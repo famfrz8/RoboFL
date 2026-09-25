@@ -19,7 +19,7 @@ from lerobot.transforms.core import DataTransformFn, DataDict
 @DataTransformFn.register_subclass("internvl3_tokenizer_internvla_a1")
 @dataclass
 class InternVL3TokenizerTransformFn(DataTransformFn):
-    pretrained_model_name_or_path: str = 'OpenGVLab/InternVL3-1B'
+    pretrained_model_name_or_path: str = 'path/to/InternVL3-1B'
     max_length: int = 48
     task_key: str = "task"
     padding_side: str = "right"

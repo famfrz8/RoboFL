@@ -27,7 +27,7 @@ If you already have a converted version uploaded to the hub, then this error mig
 an older version in your local cache. Consider deleting the cached version and retrying.
 
 If you encounter a problem, contact LeRobot maintainers on [Discord](https://discord.com/invite/s3KuuzsPFb)
-or open an [issue on GitHub](https://github.com/huggingface/lerobot/issues/new/choose).
+or open an [issue on GitHub](the upstream project issue tracker).
 """
 
 FUTURE_MESSAGE = """

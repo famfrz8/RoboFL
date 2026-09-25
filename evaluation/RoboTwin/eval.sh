@@ -48,7 +48,7 @@ echo "PROJ_ROOT  = ${PROJ_ROOT}"
 
 cd ${PROJ_ROOT}
 
-PRETRAINED_CKPT="${PRETRAINED_CKPT:-InternRobotics/InternVLA-A1-3B-RoboTwin}"
+PRETRAINED_CKPT="${PRETRAINED_CKPT:-path/to/InternVLA-A1-3B-RoboTwin}"
 BASE_OUTPUT_PATH=${PROJ_ROOT}/evaluation/RoboTwin/output
 TASK_CONFIG=demo_randomized
 TASK_IDX=0 # adjust_bottle

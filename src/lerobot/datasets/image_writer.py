@@ -81,7 +81,7 @@ def write_image(image: np.ndarray | PIL.Image.Image, fpath: Path, compress_level
         fpath (Path): The destination file path for the image.
         compress_level (int, optional): The compression level for the saved
             image, as used by PIL.Image.save(). Defaults to 1.
-            Refer to: https://github.com/huggingface/lerobot/pull/2135
+            Refer to: the upstream project
             for more details on the default value rationale.
 
     Raises:
